@@ -34,7 +34,9 @@ _nb_api = None
 
 
 def get_db_ip_port():
+    LOG.warning("Checking DB IP")
     hosts = cfg.CONF.df.remote_db_hosts
+    LOG.warning("Got DB hosts: %s", hosts)
     if not hosts:
         LOG.warning("Deprecated: remote_db_ip and remote_db_port are "
                     "deprecated for removal. Use remote_db_hosts instead")
@@ -43,6 +45,7 @@ def get_db_ip_port():
         return ip, port
     host = hosts[0]
     ip, port = host.split(':')
+    LOG.warning("Got DB Host: %s %s", host, port)
     return ip, port
 
 
