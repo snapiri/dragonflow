@@ -19,15 +19,15 @@ import time
 from eventlet import queue
 from oslo_log import log
 from oslo_service import loopingcall
-from ryu.app.ofctl import service as of_service
-from ryu.base import app_manager
+# from ryu.app.ofctl import service as of_service
+# from ryu.base import app_manager
 from ryu import cfg as ryu_cfg
 
 from dragonflow.common import utils as df_utils
 from dragonflow import conf as cfg
 from dragonflow.controller.common import constants as ctrl_const
 from dragonflow.controller import df_config
-from dragonflow.controller import ryu_base_app
+# from dragonflow.controller import ryu_base_app
 from dragonflow.controller import service
 from dragonflow.controller import topology
 from dragonflow.db import api_nb
@@ -37,9 +37,9 @@ from dragonflow.db import model_framework
 from dragonflow.db.models import core
 from dragonflow.db.models import l2
 from dragonflow.db.models import mixins
-from dragonflow.db.models import ovs
+# from dragonflow.db.models import ovs
 from dragonflow.db import sync
-from dragonflow.ovsdb import vswitch_impl
+# from dragonflow.ovsdb import vswitch_impl
 
 
 LOG = log.getLogger(__name__)
@@ -57,25 +57,25 @@ class DfLocalController(object):
         self.ip = cfg.CONF.df.local_ip
         # Virtual tunnel port support multiple tunnel types together
         self.tunnel_types = cfg.CONF.df.tunnel_types
-        self.sync_finished = False
-        self.vswitch_api = vswitch_impl.OvsApi(cfg.CONF.df.management_ip)
-        self.neutron_notifier = None
-        if cfg.CONF.df.enable_neutron_notifier:
-            self.neutron_notifier = df_utils.load_driver(
-                     cfg.CONF.df.neutron_notifier,
-                     df_utils.DF_NEUTRON_NOTIFIER_DRIVER_NAMESPACE)
+        # self.sync_finished = False
+        # self.vswitch_api = vswitch_impl.OvsApi(cfg.CONF.df.management_ip)
+        # self.neutron_notifier = None
+        # if cfg.CONF.df.enable_neutron_notifier:
+        #     self.neutron_notifier = df_utils.load_driver(
+        #              cfg.CONF.df.neutron_notifier,
+        #              df_utils.DF_NEUTRON_NOTIFIER_DRIVER_NAMESPACE)
 
-        app_mgr = app_manager.AppManager.get_instance()
-        self.open_flow_app = app_mgr.instantiate(
-            ryu_base_app.RyuDFAdapter,
-            nb_api=self.nb_api,
-            vswitch_api=self.vswitch_api,
-            neutron_server_notifier=self.neutron_notifier,
-            db_change_callback=self.db_change_callback
-        )
+        # app_mgr = app_manager.AppManager.get_instance()
+        # self.open_flow_app = app_mgr.instantiate(
+        #     ryu_base_app.RyuDFAdapter,
+        #     nb_api=self.nb_api,
+        #     vswitch_api=self.vswitch_api,
+        #     neutron_server_notifier=self.neutron_notifier,
+        #     db_change_callback=self.db_change_callback
+        # )
         # The OfctlService is needed to support the 'get_flows' method
-        self.open_flow_service = app_mgr.instantiate(of_service.OfctlService)
-        self.topology = None
+        # self.open_flow_service = app_mgr.instantiate(of_service.OfctlService)
+        # self.topology = None
         self.enable_selective_topo_dist = \
             cfg.CONF.df.enable_selective_topology_distribution
         self._sync = sync.Sync(
@@ -104,7 +104,7 @@ class DfLocalController(object):
             self._queue.task_done()
 
     def run(self):
-        self.vswitch_api.initialize(self.db_change_callback)
+        # self.vswitch_api.initialize(self.db_change_callback)
         self.nb_api.register_notification_callback(self._handle_update)
         if cfg.CONF.df.enable_neutron_notifier:
             self.neutron_notifier.initialize(nb_api=self.nb_api,
@@ -120,22 +120,22 @@ class DfLocalController(object):
         # for reliability, here we should check if controller is set for OVS,
         # if yes, don't set controller and don't delete controller.
         # if no, set controller
-        targets = ('tcp:' + cfg.CONF.df_ryu.of_listen_address + ':' +
-                   str(cfg.CONF.df_ryu.of_listen_port))
-        is_controller_set = self.vswitch_api.check_controller(targets)
-        integration_bridge = cfg.CONF.df.integration_bridge
-        if not is_controller_set:
-            self.vswitch_api.set_controller(integration_bridge, [targets])
-        is_fail_mode_set = self.vswitch_api.check_controller_fail_mode(
-            'secure')
-        if not is_fail_mode_set:
-            self.vswitch_api.set_controller_fail_mode(
-                integration_bridge, 'secure')
-        self.open_flow_service.start()
-        self.open_flow_app.start()
+        # targets = ('tcp:' + cfg.CONF.df_ryu.of_listen_address + ':' +
+        #            str(cfg.CONF.df_ryu.of_listen_port))
+        # is_controller_set = self.vswitch_api.check_controller(targets)
+        # integration_bridge = cfg.CONF.df.integration_bridge
+        # if not is_controller_set:
+        #     self.vswitch_api.set_controller(integration_bridge, [targets])
+        # is_fail_mode_set = self.vswitch_api.check_controller_fail_mode(
+        #     'secure')
+        # if not is_fail_mode_set:
+        #     self.vswitch_api.set_controller_fail_mode(
+        #         integration_bridge, 'secure')
+        # self.open_flow_service.start()
+        # self.open_flow_app.start()
         self._register_models()
         self.register_chassis()
-        self.sync()
+        # self.sync()
         self.process_changes()
 
     def _submit_sync_event(self):
@@ -147,12 +147,12 @@ class DfLocalController(object):
             # FIXME (dimak) generalize sync to support non-northbound models
             # Adding OvsPort will cause sync to delete all OVS ports
             # periodically
-            if model == ovs.OvsPort:
-                continue
+            # if model == ovs.OvsPort:
+            #     continue
             self._sync.add_model(model)
 
     def sync(self):
-        self.topology.check_topology_info()
+        # self.topology.check_topology_info()
         self._sync.sync()
 
     def register_topic(self, topic):
@@ -227,11 +227,11 @@ class DfLocalController(object):
         self.nb_api.subscriber.unregister_listen_address(publisher.uri)
         self.db_store.delete(publisher)
 
-    def ovs_sync_finished(self):
-        self.open_flow_app.notify_ovs_sync_finished()
+    # def ovs_sync_finished(self):
+    #     self.open_flow_app.notify_ovs_sync_finished()
 
-    def ovs_sync_started(self):
-        self.open_flow_app.notify_ovs_sync_started()
+    # def ovs_sync_started(self):
+    #     self.open_flow_app.notify_ovs_sync_started()
 
     def _is_newer(self, obj, cached_obj):
         '''Check wether obj is newer than cached_on.
@@ -324,10 +324,10 @@ class DfLocalController(object):
             self.sync()
         elif action == ctrl_const.CONTROLLER_DBRESTART:
             self.nb_api.db_recover_callback()
-        elif action == ctrl_const.CONTROLLER_OVS_SYNC_FINISHED:
-            self.ovs_sync_finished()
-        elif action == ctrl_const.CONTROLLER_OVS_SYNC_STARTED:
-            self.ovs_sync_started()
+        # elif action == ctrl_const.CONTROLLER_OVS_SYNC_FINISHED:
+            # self.ovs_sync_finished()
+        # elif action == ctrl_const.CONTROLLER_OVS_SYNC_STARTED:
+        #     self.ovs_sync_started()
         elif action == ctrl_const.CONTROLLER_LOG:
             LOG.info('Log event: %s', str(update))
         elif update.table is not None:
@@ -360,11 +360,12 @@ def init_ryu_config():
 # python df_local_controller.py <chassis_unique_name>
 # <local ip address> <southbound_db_ip_address>
 def main():
+    df_config.init(sys.argv[1:])
     chassis_name = cfg.CONF.host
-    df_config.init(sys.argv)
 
     init_ryu_config()
     nb_api = api_nb.NbApi.get_instance(False)
     controller = DfLocalController(chassis_name, nb_api)
     service.register_service('df-local-controller', nb_api)
     controller.run()
+

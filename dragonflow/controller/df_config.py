@@ -10,14 +10,34 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import socket
+import sys
 
-from neutron.common import config as common_config
+# from neutron.common import config as common_config
+from oslo_config import cfg
+from oslo_log import log as logging
 
 from dragonflow.common import profiler as df_profiler
-from dragonflow import conf as cfg
+from dragonflow import conf
+
+LOG = logging.getLogger(__name__)
+
+EXTRA_LOG_LEVEL_DEFAULTS = [
+    'dragonflow=DEBUG'
+]
+
+logging.register_options(cfg.CONF)
 
 
-def init(argv):
-    common_config.init(argv[1:])
-    common_config.setup_logging()
-    df_profiler.setup(argv[0], cfg.CONF.host)
+def init(args, **kwargs):
+    cfg.CONF(args=args, project='dragonflow', **kwargs)
+    cfg.CONF.host = socket.gethostname()
+    product_name = "dragonflow"
+    logging.set_defaults(default_log_levels=logging.get_default_log_levels() +
+                         EXTRA_LOG_LEVEL_DEFAULTS)
+    logging.setup(cfg.CONF, product_name)
+    LOG.info("Logging enabled!")
+    LOG.info("%(prog)s", {'prog': sys.argv[0]})
+    LOG.debug("command line: %s", " ".join(sys.argv))
+    df_profiler.setup(sys.argv[0], conf.CONF.host)
+

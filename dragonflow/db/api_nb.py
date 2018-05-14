@@ -43,6 +43,7 @@ def get_db_ip_port():
         return ip, port
     host = hosts[0]
     ip, port = host.split(':')
+    LOG.warning("Got DB Host: %s %s", ip, port)
     return ip, port
 
 
